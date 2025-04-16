@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { generateQuiz, saveQuizResult } from "@/actions/interview";
 import QuizResult from "./quiz-result";
 import useFetch from "@/hooks/use-fetch";
@@ -22,7 +21,6 @@ export default function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [showExplanation, setShowExplanation] = useState(false);
-  const [numQuestions, setNumQuestions] = useState(1);
 
   const {
     loading: generatingQuiz,
@@ -107,29 +105,12 @@ export default function Quiz() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            This quiz contains questions specific to your industry and skills.
-            Take your time and choose the best answer for each question.
+            This quiz contains 10 questions specific to your industry and
+            skills. Take your time and choose the best answer for each question.
           </p>
-          <div className="mt-4">
-            <Label htmlFor="num-questions">Number of Questions (1 or more):</Label>
-            <Input
-              id="num-questions"
-              type="number"
-              value={numQuestions}
-              onChange={(e) => {
-                const value = Math.max(1, Number(e.target.value)); // Allow numbers greater than or equal to 1
-                setNumQuestions(value);
-              }}
-              min={1}
-            />
-          </div>
         </CardContent>
         <CardFooter>
-          <Button
-            onClick={generateQuizFn}
-            className="w-full"
-            disabled={numQuestions < 1} // Disable button if the number of questions is less than 1
-          >
+          <Button onClick={generateQuizFn} className="w-full">
             Start Quiz
           </Button>
         </CardFooter>
