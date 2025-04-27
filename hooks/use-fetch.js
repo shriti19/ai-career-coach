@@ -1,3 +1,5 @@
+// hooks/use-fetch.js
+"use client"
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -22,8 +24,12 @@ const useFetch = (cb) => {
     }
   };
 
-  return { data, loading, error, fn, setData };
-};
+  const reset = () => {
+    setData(undefined); // Reset data to its initial state
+    setError(null);
+  };
 
+  return { data, loading, error, fn, setData, reset }; // Add the reset function to the returned object
+};
 
 export default useFetch;

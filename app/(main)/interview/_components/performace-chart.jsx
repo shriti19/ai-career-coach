@@ -24,7 +24,11 @@ export default function PerformanceChart({ assessments }) {
 
   useEffect(() => {
     if (assessments) {
-      const formattedData = assessments.map((assessment) => ({
+       // Sort assessments by createdAt in ascending order
+       const sortedAssessments = [...assessments].sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+      );
+      const formattedData = sortedAssessments.map((assessment) => ({
         date: format(new Date(assessment.createdAt), "MMM dd"),
         score: assessment.quizScore,
       }));
@@ -53,7 +57,10 @@ export default function PerformanceChart({ assessments }) {
                     return (
                       <div className="bg-background border rounded-lg p-2 shadow-md">
                         <p className="text-sm font-medium">
-                          Score: {payload[0].value}%
+                          Score: {payload[0].value.toLocaleString(undefined, {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 2, // Or any other maximum you prefer
+                                  })}%
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {payload[0].payload.date}

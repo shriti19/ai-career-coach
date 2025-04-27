@@ -16,16 +16,22 @@ import { generateQuiz, saveQuizResult } from "@/actions/interview";
 import QuizResult from "./quiz-result";
 import useFetch from "@/hooks/use-fetch";
 import { BarLoader } from "react-spinners";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function Quiz() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [numQuestions, setNumQuestions] = useState(10);
+  const [showQuizSettings, setShowQuizSettings] = useState(true);
 
   const {
     loading: generatingQuiz,
     fn: generateQuizFn,
     data: quizData,
+    reset: resetQuizData,
   } = useFetch(generateQuiz);
 
   const {
@@ -38,6 +44,7 @@ export default function Quiz() {
   useEffect(() => {
     if (quizData) {
       setAnswers(new Array(quizData.length).fill(null));
+      setShowQuizSettings(false);
     }
   }, [quizData]);
 
@@ -76,11 +83,24 @@ export default function Quiz() {
     }
   };
 
-  const startNewQuiz = () => {
+  const startNewQuiz = async () => {
+    if (!topic.trim()) {
+      toast.error("Please enter a topic for the quiz.");
+      return;
+    }
+    if (isNaN(numQuestions) || numQuestions <= 0) {
+      toast.error("Please enter a valid number of questions.");
+      return;
+    }
+    resetQuizData();
     setCurrentQuestion(0);
     setAnswers([]);
     setShowExplanation(false);
-    generateQuizFn();
+    try {
+      await generateQuizFn(topic, parseInt(numQuestions));
+    } catch (error) {
+      toast.error(error.message || "Failed to generate quiz.");
+    }
     setResultData(null);
   };
 
@@ -92,30 +112,53 @@ export default function Quiz() {
   if (resultData) {
     return (
       <div className="mx-2">
-        <QuizResult result={resultData} onStartNew={startNewQuiz} />
+        <QuizResult result={resultData} onStartNew={() => setShowQuizSettings(true)} />
       </div>
     );
   }
 
-  if (!quizData) {
+  if (showQuizSettings) {
     return (
       <Card className="mx-2">
         <CardHeader>
-          <CardTitle>Ready to test your knowledge?</CardTitle>
+          <CardTitle>Customize Your Quiz</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">
-            This quiz contains 10 questions specific to your industry and
-            skills. Take your time and choose the best answer for each question.
-          </p>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="topic">Topic</Label>
+            <Input
+              type="text"
+              id="topic"
+              placeholder="e.g., React, Data Structures, Algorithms"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="numQuestions">Number of Questions</Label>
+            <Input
+              type="number"
+              id="numQuestions"
+              min="1"
+              value={numQuestions}
+              onChange={(e) => {
+                const parsedValue = parseInt(e.target.value);
+                setNumQuestions(isNaN(parsedValue) ? 1 : parsedValue);
+              }}
+            />
+          </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={generateQuizFn} className="w-full">
+          <Button onClick={startNewQuiz} className="w-full">
             Start Quiz
           </Button>
         </CardFooter>
       </Card>
     );
+  }
+
+  if (!quizData) {
+    return null; // Should not happen if showQuizSettings is false and not generatingQuiz
   }
 
   const question = quizData[currentQuestion];
